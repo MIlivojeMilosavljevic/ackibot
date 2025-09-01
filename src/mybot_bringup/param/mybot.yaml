@@ -1,0 +1,18 @@
+fw_node:
+  ros__parameters:
+
+    wheels:
+      separation: 0.43
+      radius: 0.073
+
+    motors:
+      enc_tick_per_rev: 3415.92 # 118RPM mybot1 motor
+
+diff_drive_controller:
+  ros__parameters:
+
+    odometry:
+      publish_tf: true
+      use_imu: false
+      frame_id: "odom"
+      child_frame_id: "base_footprint"

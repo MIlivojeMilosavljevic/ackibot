@@ -1,0 +1,15 @@
+/**:
+  ros__parameters:
+    axis_linear:
+      x: 1
+    scale_linear:
+      x: 0.99
+    scale_linear_turbo:
+      x: 1.5
+
+    axis_angular:
+      yaw: 0
+    scale_angular:
+      yaw: 0.6
+
+    require_enable_button: false

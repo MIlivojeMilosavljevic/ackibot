@@ -13,16 +13,14 @@ from launch.substitutions import (
 )
 from launch_ros.actions import Node
 
-import mybot_utils.uname
-from mybot_utils.utils import show
+import ackibot_utils.uname
+from ackibot_utils.utils import show
 
 def launch_setup(context, *args, **kwargs):
-    #show(mybot_utils.uname.is_raspberrypi())
-    #default_machine = mybot_utils.uname.is_raspberrypi() and 'sbc' or ''
-    
+   
     machine = LaunchConfiguration('machine', default='')
     
-
+    #dodaje sufiks imenu cvorova ili topica
     def add_suffix(name):
         p = machine.perform(context)
         if p == '':
@@ -31,6 +29,8 @@ def launch_setup(context, *args, **kwargs):
             return '_'.join([name, p])
 
     joypad = LaunchConfiguration('joypad', default='sony')
+
+    #trazi yaml fajl sa odgovarajucom konfiguracijom za dzojstik
 
     joypad_name = joypad.perform(context)
     def find_joypad_cfg(pkg):
@@ -43,14 +43,16 @@ def launch_setup(context, *args, **kwargs):
         if os.path.exists(jc_file):
             return jc_file
         else:
-            return None
-    joy_cfg_path = find_joypad_cfg('mybot_teleop')
+            return None  
+
+    joy_cfg_path = find_joypad_cfg('ackibot_teleop')
     if not joy_cfg_path:
         joy_cfg_path = find_joypad_cfg('teleop_twist_joy')
     show(joy_cfg_path)
 
 
     return [
+        #argumenti koji se mogu proslediti prilikom pokretanja
         DeclareLaunchArgument(
             'machine',
             default_value=''
@@ -61,9 +63,10 @@ def launch_setup(context, *args, **kwargs):
             default_value='sony'
         ),
 
+        #pokrece cvor za joy_node
         Node(
             #package='joy',
-            package='mybot_teleop',
+            package='ackibot_teleop',
             executable='joy_node',
             name=add_suffix('joy_node'),
             parameters=[{
@@ -77,6 +80,7 @@ def launch_setup(context, *args, **kwargs):
             ],
             respawn = True,
         ),
+        #pokrece cvor za teleop_twist_joy
         Node(
             package='teleop_twist_joy',
             executable='teleop_node',

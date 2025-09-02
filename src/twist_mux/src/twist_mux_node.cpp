@@ -38,15 +38,15 @@
 
 int main(int argc, char * argv[])
 {
-  rclcpp::init(argc, argv);
+  rclcpp::init(argc, argv); // Inicijalizacija ROS2 sistema
 
-  auto twist_mux_node = std::make_shared<twist_mux::TwistMux>();
+  auto twist_mux_node = std::make_shared<twist_mux::TwistMux>(); // Kreiramo instancu našeg node-a twist_mux, koristeći std::make_shared
 
-  twist_mux_node->init();
+  twist_mux_node->init(); // Pozivamo init() metodu da node učita parametre (topics, locks) i pripremi publisere, subscribere i dijagnostiku
 
-  rclcpp::spin(twist_mux_node);
+  rclcpp::spin(twist_mux_node); // Pokrećemo glavnu petlju (event loop) - ovde ROS2 obrađuje sve callback-ove (subscribe, timer, diag…)
 
-  rclcpp::shutdown();
+  rclcpp::shutdown(); // Kada se node završi (npr. Ctrl+C), uredno gasimo ROS2
 
   return EXIT_SUCCESS;
 }

@@ -6,14 +6,18 @@
 # - priority: priority in the range [0, 255]; the higher the more priority over other topics
 # - expire_on_idle: If true, it will expire in command is zero
 
+# Konfiguracija za twist_mux
+# twist_mux omogućava da više izvora komandi (Twist) kontrolišu robota.
+# Svaki izvor ima svoj prioritet, timeout i pravilo kada komanda "isteče".
+
 twist_mux:
   ros__parameters:
     topics:
-      navigation:
-        topic   : /cmd_vel_nav_stamped
-        timeout : 0.5
+      navigation:             # Ime izvora komande, odakle dolaze komande za kretanje robota
+        topic   : /cmd_vel_nav_stamped #označava odakle dolaze komande, tj. koju ROS temu taj izvor koristi za slanje Twist poruka
+        timeout : 0.5         # Timeout u sekundama – nakon koliko vremena stare poruke se ignorišu i koristi se 0.0 brzina
         priority: 50
-        expire_on_idle: false
+        expire_on_idle: false # Ako je true, komanda isteče kada je brzina 0
       joystick:
         topic   : /cmd_vel_joy_sbc
         timeout : 0.5
@@ -24,3 +28,4 @@ twist_mux:
         timeout : 0.5
         priority: 100
         expire_on_idle: true
+

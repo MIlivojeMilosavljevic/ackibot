@@ -1,0 +1,34 @@
+<?xml version="1.0"?>  <!-- XML deklaracija, verzija 1.0 -->
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<!-- Referenca na ROS2 XML šemu za validaciju formata paketa -->
+
+<package format="3">  <!-- koristi format 3 ROS2 paketa -->
+  
+  <name>ackibot_bringup</name>  <!-- ime paketa -->
+  <version>0.0.1</version>  <!-- verzija paketa -->
+  <description>
+    ROS 2 launch scripts for starting the AckiBot
+  </description>  <!-- opis paketa -->
+  
+  <maintainer email="max@younomow.com">Will Son</maintainer>  <!-- osoba koja održava paket -->
+  <license>Apache 2.0</license>  <!-- licenca paketa -->
+  
+  <url type="website">myrobotkits.us</url>  <!-- link ka web stranici projekta -->
+  <url type="repository">https://github.com/Mdbirley/ackibot</url>  <!-- link ka repozitorijumu -->
+  
+  <author email="milos.subotic.sm@gmail.com">Milos Subotic</author>  <!-- autor paketa -->
+  
+  <buildtool_depend>ament_cmake</buildtool_depend>  <!-- build tool zavisnost (CMake za ROS2) -->
+  
+  <exec_depend>robot_state_publisher</exec_depend>  <!-- runtime zavisnost, koristi se za objavljivanje stanja robota -->
+  <exec_depend>rviz2</exec_depend>  <!-- runtime zavisnost, RViz za vizualizaciju -->
+  <exec_depend>ackibot_description</exec_depend>  <!-- paket sa URDF opisom robota -->
+  <exec_depend>ackibot_node</exec_depend>  <!-- glavni nod robota koji upravlja hardverom -->
+  <exec_depend>ackibot_teleop</exec_depend>  <!-- teleop paket za daljinsko upravljanje robotom -->
+  <exec_depend>rplidar_ros</exec_depend>  <!-- paket za LIDAR senzor -->
+  
+  <export>
+    <build_type>ament_cmake</build_type>  <!-- definiše tip build sistema paketa -->
+  </export>
+  
+</package>

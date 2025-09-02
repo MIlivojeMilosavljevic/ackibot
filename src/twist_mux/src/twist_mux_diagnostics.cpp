@@ -57,6 +57,7 @@ void TwistMuxDiagnostics::update()
 
 void TwistMuxDiagnostics::updateStatus(const status_type::ConstPtr & status)
 {
+  // Kopiramo sve podatke iz trenutnog statusa (liste izvora, lockova, prioriteti...)
   status_->velocity_hs = status->velocity_hs;
   status_->velocity_stamped_hs = status->velocity_stamped_hs;
   status_->lock_hs = status->lock_hs;
@@ -66,7 +67,7 @@ void TwistMuxDiagnostics::updateStatus(const status_type::ConstPtr & status)
   status_->reading_age = status->reading_age;
   status_->use_stamped = status->use_stamped;
 
-  update();
+  update(); // Nakon ažuriranja odmah forsiramo update dijagnostike
 }
 
 void TwistMuxDiagnostics::diagnostics(diagnostic_updater::DiagnosticStatusWrapper & stat)

@@ -128,13 +128,22 @@ void TwistMux::init()
   }
 
   /// Diagnostics:
+  // Kreiramo objekat klase TwistMuxDiagnostics koji je vezan na ovaj node
+  // On će pratiti status i slati podatke u ROS2 diagnostics sistem (/diagnostics topic)
   diagnostics_ = std::make_shared<diagnostics_type>(this);
+
+  // status_ je struktura u kojoj se čuvaju pokazivači na sve izvore i lockove
+  // Popunjavamo koje liste treba pratiti
   status_ = std::make_shared<status_type>();
   status_->velocity_hs = velocity_hs_;
   status_->velocity_stamped_hs = velocity_stamped_hs_;
   status_->lock_hs = lock_hs_;
   status_->use_stamped = use_stamped;
-
+  
+  // Tajmer koji se pokreće svakih DIAGNOSTICS_PERIOD sekundi (~1 sekund)
+  // Svaki put kad otkuca, poziva se metoda updateDiagnostics()
+  // Ta metoda ažurira status i prosleđuje ga TwistMuxDiagnostics objektu
+  // Ova linija koda postavlja periodičnu proveru zdravlja sistema.
   diagnostics_timer_ = this->create_wall_timer(
     DIAGNOSTICS_PERIOD, [this]() -> void {
       updateDiagnostics();
@@ -143,6 +152,7 @@ void TwistMux::init()
 
 void TwistMux::updateDiagnostics()
 {
+  // status_->priority je vrednost koju dijagnostika kasnije koristi da odredi: koji izvori brzine su trenutno maskirani, ko ima prednost u odnosu na druge, i koje lock-ove treba prikazati kao aktivne.
   status_->priority = getLockPriority();
   RCLCPP_DEBUG(get_logger(), "updateDiagnostics: lol");
   diagnostics_->updateStatus(status_);
@@ -151,11 +161,13 @@ void TwistMux::updateDiagnostics()
 
 void TwistMux::publishTwist(const geometry_msgs::msg::Twist::ConstSharedPtr & msg)
 {
+  // cmd_pub_ je publisher za izlazni topic cmd_vel_out
   cmd_pub_->publish(*msg);
 }
 
 void TwistMux::publishTwistStamped(const geometry_msgs::msg::TwistStamped::ConstSharedPtr & msg)
 {
+  // cmd_pub_stamped_ je publisher za izlazni topic cmd_vel_out
   cmd_pub_stamped_->publish(*msg);
 }
 
@@ -209,6 +221,8 @@ void TwistMux::getTopicHandles(const std::string & param_name, std::list<T> & to
   }
 }
 
+// Vraća najveći prioritet među aktivnim lockovima (ako nema lockova → 0).
+// Taj broj služi kao granica: svi izvori sa nižim ili jednakim prioritetom od aktivnog locka → smatraju se blokiranim.
 int TwistMux::getLockPriority()
 {
   LockTopicHandle::priority_type priority = 0;
@@ -229,8 +243,10 @@ int TwistMux::getLockPriority()
   return priority;
 }
 
+// Vraca odgovor da li trenutni izvor (twist) ima najveci prioritet i nije blokiran lock-om.
 bool TwistMux::hasPriority(const VelocityTopicHandle & twist)
 {
+  // Uzimamo najveći prioritet aktivnog lock-a
   const auto lock_priority = getLockPriority();
 
   LockTopicHandle::priority_type priority = 0;
@@ -238,9 +254,12 @@ bool TwistMux::hasPriority(const VelocityTopicHandle & twist)
 
   /// max_element on the priority of velocity topic handles satisfying
   /// that is NOT masked by the lock priority:
+  // Prolazimo kroz sve izvore brzinskih komandi (joystick, nav2, keyboard...)
   for (const auto & velocity_h : *velocity_hs_) {
+    // Ako izvor NIJE maskiran (nije istekao i nije ispod lock prioriteta)
     if (!velocity_h.isMasked(lock_priority)) {
       const auto velocity_priority = velocity_h.getPriority();
+      // Čuvamo onaj sa najvećim prioritetom
       if (priority < velocity_priority) {
         priority = velocity_priority;
         velocity_name = velocity_h.getName();
@@ -248,6 +267,7 @@ bool TwistMux::hasPriority(const VelocityTopicHandle & twist)
     }
   }
 
+  // Vraćamo true ako je ovaj konkretni izvor (twist) baš onaj koji trenutno ima najveći prioritet
   return twist.getName() == velocity_name;
 }
 

@@ -1,0 +1,17 @@
+
+  ros__parameters:
+    axis_linear:  #indeks ose koji kontrolise napred-nazad
+      x: 1
+    scale_linear: #normalna skala brzine - linearna brzina ce biti 0.99 maksimalne
+      x: 0.99
+    scale_linear_turbo: #turbo skala brzine - veca brzina kada je dugme za turbo pritisnuto
+      x: 1.5
+
+    axis_angular: #osa koja kontrolise rotaciju robota - okretanje oko z ose
+      yaw: 0
+    scale_angular: #ogranicavanje brzine rotacije 
+      yaw: 0.6
+
+    require_enable_button: false  
+
+    

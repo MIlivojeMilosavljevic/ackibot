@@ -17,9 +17,7 @@ import ackibot_utils.uname
 from ackibot_utils.utils import show
 
 def launch_setup(context, *args, **kwargs):
-    #show(mybot_utils.uname.is_raspberrypi())
-    #default_machine = mybot_utils.uname.is_raspberrypi() and 'sbc' or ''
-    
+   
     machine = LaunchConfiguration('machine', default='')
     
     #dodaje sufiks imenu cvorova ili topica

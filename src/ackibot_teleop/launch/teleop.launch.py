@@ -45,8 +45,7 @@ def launch_setup(context, *args, **kwargs):
         if os.path.exists(jc_file):
             return jc_file
         else:
-            return None
-        
+            return None  
 
     joy_cfg_path = find_joypad_cfg('ackibot_teleop')
     if not joy_cfg_path:
@@ -55,6 +54,7 @@ def launch_setup(context, *args, **kwargs):
 
 
     return [
+        #argumenti koji se mogu proslediti prilikom pokretanja
         DeclareLaunchArgument(
             'machine',
             default_value=''
@@ -65,6 +65,7 @@ def launch_setup(context, *args, **kwargs):
             default_value='sony'
         ),
 
+        #pokrece cvor za joy_node
         Node(
             #package='joy',
             package='ackibot_teleop',
@@ -81,6 +82,7 @@ def launch_setup(context, *args, **kwargs):
             ],
             respawn = True,
         ),
+        #pokrece cvor za teleop_twist_joy
         Node(
             package='teleop_twist_joy',
             executable='teleop_node',

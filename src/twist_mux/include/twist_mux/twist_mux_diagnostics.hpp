@@ -43,13 +43,26 @@
 
 namespace twist_mux
 {
+/**
+ * @brief Klasa zadužena za ROS2 dijagnostiku twist_mux noda.
+ *
+ * Koristi `diagnostic_updater` biblioteku da periodično proverava:
+ *   - da li glavna petlja radi dovoljno brzo,
+ *   - da li poruke o brzini stižu dovoljno često,
+ *   - stanje svih izvora (velocity) i lock-ova,
+ *   - trenutni prioritet.
+ *
+ * Rezultate publikuje na standardni ROS2 `/diagnostics` topic.
+ */
 class TwistMuxDiagnostics
 {
 public:
   typedef TwistMuxDiagnosticsStatus status_type;
 
-  static constexpr double MAIN_LOOP_TIME_MIN = 0.2;   // [s]
-  static constexpr double READING_AGE_MIN = 3.0;     // [s]
+  static constexpr double MAIN_LOOP_TIME_MIN = 0.2; // [s], Minimalno dozvoljeno vreme glavne petlje [s]
+                                                    // Ako je petlja sporija od ovoga → ERROR.
+  static constexpr double READING_AGE_MIN = 3.0;  // [s], Maksimalno dozvoljena starost poslednje poruke [s].
+                                                  // Ako je podataka stariji → ERROR.
 
   explicit TwistMuxDiagnostics(TwistMux * mux);
   virtual ~TwistMuxDiagnostics() = default;
@@ -71,8 +84,8 @@ private:
     ERROR = diagnostic_msgs::msg::DiagnosticStatus::ERROR
   };
 
-  std::shared_ptr<diagnostic_updater::Updater> diagnostic_;
-  std::shared_ptr<status_type> status_;
+  std::shared_ptr<diagnostic_updater::Updater> diagnostic_; // Glavni objekat iz `diagnostic_updater` biblioteke koji vodi računa o registraciji i objavljivanju dijagnostike.
+  std::shared_ptr<status_type> status_; // Kopija trenutnog statusa sistema (velocity izvori, lockovi, prioriteti…), koja se koristi da bi se popunio dijagnostički izveštaj.
 };
 }  // namespace twist_mux
 

@@ -8,6 +8,8 @@
 # - priority: priority in the range [0, 255], so all the topics with priority lower than it
 #             will be stopped/disabled
 # - expire_on_idle: If true, it will expire in command is zero
+#                   TRUE - lock se automatksi iskljuci kad poruke prestanu da stizu
+#                   FALSE - ostaje aktivan dok se ne dobije "eksplicitna" poruka da je otkljucan
 
 twist_mux:
   ros__parameters:
@@ -17,7 +19,7 @@ twist_mux:
         timeout : 0.0
         # Same priority as joystick control, so it'll not block it.
         priority: 100
-        expire_on_idle: false
+        expire_on_idle: false 
       loop_closure:
         topic   : stop_closing_loop
         timeout : 0.0

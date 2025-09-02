@@ -1,11 +1,12 @@
 joystick_relay:
   ros__parameters:
-    priority: True
-    turbo:
+    priority: True  # Signalizira da joystick komande imaju prioritet nad ostalim izvorima
+    turbo:  # Ovo je blok podešavanja za tzv. turbo mode ili “stepeno pojačavanje brzine” joysticka
       linear_forward_min  : 0.5
       linear_forward_max  : 1.0
       linear_backward_min : 0.25
       linear_backward_max : 0.5
       angular_min : 0.7
       angular_max : 1.2
-      steps       : 4
+      steps       : 4 # Broj “koraka” između min i max brzina
+                      # Ako steps = 4, to znači da ćeš imati 4 različita nivoa turbo brzine između min i max (kao menjač brzina)

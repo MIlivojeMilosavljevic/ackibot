@@ -75,14 +75,27 @@ TwistMux::TwistMux()
 {
 }
 
+/*
+* use_stamped kontrolise da li ce twist_mux koristiti:
+* 1) geometry_msg::msg::Twist
+*    linear {x, y, z}
+*    angular {x, y, z}
+* 2) geometru_msg::msg::TwistStamped
+*    header:
+*      stamp: vrijeme kad je poruka vazila
+*      frame_id: koordinatni sistem
+*    twist:
+*      linear {x, y, z}
+*      angular {x, y, z}
+*/
 void TwistMux::init()
 {
   // Get use stamped parameter
   bool use_stamped = true;
-  this->declare_parameter("use_stamped", use_stamped);
+  this->declare_parameter("use_stamped", use_stamped); // Registurje parametar pod imenom "use_stamped" u ROS2 sistemu.
 
   auto nh = std::shared_ptr<rclcpp::Node>(this, [](rclcpp::Node *) {});
-  fetch_param(nh, "use_stamped", use_stamped);
+  fetch_param(nh, "use_stamped", use_stamped); // Pomocna wrap metoda za pronalazanje parametara
 
   /// Get topics and locks:
   if(use_stamped)
@@ -146,6 +159,20 @@ void TwistMux::publishTwistStamped(const geometry_msgs::msg::TwistStamped::Const
   cmd_pub_stamped_->publish(*msg);
 }
 
+/**
+ * @brief Učita konfiguraciju topika iz parametara (YAML fajla) i napravi "handle" objekte.
+ *
+ * @tparam T – tip handle-a (VelocityTopicHandle, VelocityStampedTopicHandle ili LockTopicHandle).
+ * @param param_name – prefiks u parametru (npr. "topics" ili "locks").
+ * @param topic_hs – lista u koju se dodaju kreirani handle-ovi.
+ *
+ * Funkcija radi sledeće:
+ * 1. Pretraži sve parametre u okviru `param_name` (npr. "topics.joystick", "topics.navigation"...).
+ * 2. Za svaki pronađeni prefiks pročita njegovu vrijednostS
+ * 3. Na osnovu ovih parametara kreira odgovarajući TopicHandle i dodaje ga u listu.
+ *
+ * Na kraju, "twist_mux" ima listu svih izvora brzinskih komandi ili lock-ova koje može da prati i upoređuje po prioritetu.
+ */
 template<typename T>
 void TwistMux::getTopicHandles(const std::string & param_name, std::list<T> & topic_hs)
 {

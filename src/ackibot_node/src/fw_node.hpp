@@ -27,18 +27,22 @@ class FW_Node : public rclcpp::Node {
 public:
 	typedef struct
 	{
-		float separation;
-		float radius;
+		float separation;		//razmak izmedju tockova
+		float radius;		//poluprecnik tocka
 	} Wheels;
 
+	//parametri za kontrolu motora vezano za profil ubrzanja
 	typedef struct
 	{
 		float profile_acceleration_constant;
 		float profile_acceleration;
 	} Motors;
 
+	//konstruktor i destruktor
 	explicit FW_Node(const std::string & usb_port);
 	virtual ~FW_Node() {}
+
+	//deklaracija metoda implementiranih u fw_node.cpp
 
 	Wheels * get_wheels();
 

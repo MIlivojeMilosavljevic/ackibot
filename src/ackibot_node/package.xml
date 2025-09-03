@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>mybot_node</name>
+  <name>ackibot_node</name>
   <version>0.0.1</version>
   <description>
     MyBot driver node that include diff drive controller, odometry and tf node

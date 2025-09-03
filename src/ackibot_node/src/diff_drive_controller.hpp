@@ -1,5 +1,3 @@
-// Copyright 2019 ROBOTIS CO., LTD.
-// Author: Darby Lim
 
 #pragma once
 
@@ -9,8 +7,9 @@
 
 #include "odometry.hpp"
 
-namespace mybot
+namespace ackibot
 {
+   //konstruktor klase DiffDriveController koji prima razmak izmedju tockova i poluprecnik tocka
 class DiffDriveController : public rclcpp::Node
 {
 public:
@@ -21,4 +20,4 @@ private:
   std::shared_ptr<rclcpp::Node> nh_;
   std::unique_ptr<Odometry> odometry_;
 };
-}  // namespace mybot
+}  // namespace ackibot

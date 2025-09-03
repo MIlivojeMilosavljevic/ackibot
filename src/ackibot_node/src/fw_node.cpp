@@ -12,7 +12,9 @@
 
 using namespace std::chrono_literals;
 
-
+//ROS cvor koji povezuje Sabertooth motor kontroler sa ROS sistemom
+//pretvara podatke u brzine motora, salje ih sabertoothu cita enkodere i objavljuje stanja tockova 
+//na joint_states
 
 
 #define REPEATER_HZ 25
@@ -34,6 +36,7 @@ FW_Node::FW_Node(const std::string & usb_port)
 		"fw_node",
 		rclcpp::NodeOptions().use_intra_process_comms(true)
 	),
+	//inicijalizacija clanova klase
 	watchdog_cnt(0)
 {
 	RCLCPP_INFO(get_logger(), "Init FW_Node Node Main");

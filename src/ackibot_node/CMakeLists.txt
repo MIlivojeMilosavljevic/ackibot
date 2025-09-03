@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(mybot_node)
+project(ackibot_node)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)

@@ -1,6 +1,3 @@
-// Copyright 2019 ROBOTIS CO., LTD.
-// Author: Darby Lim
-
 #pragma once
 
 #include <array>
@@ -21,18 +18,19 @@
 #include <sensor_msgs/msg/joint_state.hpp>
 
 
-namespace mybot
+namespace ackibot
 {
 class Odometry
 {
 public:
   explicit Odometry(
-    std::shared_ptr<rclcpp::Node> & nh,
-    const double wheels_separation,
-    const double wheels_radius);
+    std::shared_ptr<rclcpp::Node> & nh,     //pokazivac na ROS node
+    const double wheels_separation,         //rastojanje izmedju tockova
+    const double wheels_radius);      //poluprecnik tocka
   virtual ~Odometry() {}
 
 private:
+//deklaracije metoda koje su implementirane u odometry.cpp
   bool calculate_odometry(const rclcpp::Duration & duration);
 
   void update_imu(const std::shared_ptr<sensor_msgs::msg::Imu const> & imu);
@@ -78,4 +76,4 @@ private:
   std::array<double, 3> robot_pose_;
   std::array<double, 3> robot_vel_;
 };
-}  // namespace mybot
+}  // namespace ackibot

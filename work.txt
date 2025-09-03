@@ -1,0 +1,11 @@
+
+- mybot -> ackibot
+	- filenames and code
+	- read the code
+
+- Change
+	- FW/Arduino_Motor_Controller/fw_pkgs.hpp
+	- FW/Arduino_Motor_Controller/Arduino_Motor_Controller.ino
+	- ROS2/ackibot_ws/src/mybot_node/src/fw_node.hpp/cpp
+- build/run with
+	ROS2/ackibot_ws/scripts/ackibot_basic_flow.sh

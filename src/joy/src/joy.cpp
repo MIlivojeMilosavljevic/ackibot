@@ -45,14 +45,18 @@
 
 #include "joy/joy.hpp"
 
+//DRUGI fajl Povezuje se sa odabranim uređajem, čita ulaze i emituje ih kao ROS poruke.
 namespace joy
 {
 
+//konstruktor klase Joy a klasa Joy nasledjuje klasu rclcpp::Node
+//konstruktor kaze napravi mi ROS2 node "joy_node" sa zadatim operacijama
 Joy::Joy(const rclcpp::NodeOptions & options)
 : rclcpp::Node("joy_node", options)
 {
-  dev_id_ = static_cast<int>(this->declare_parameter("device_id", 0));
-
+  //deklarisemo parametar sa device_id sto je zadato spolja ili sa podraz. vr = 0 i cast za slucaj da f-ja vraca
+  dev_id_ = static_cast<int>(this->declare_parameter("device_id", 0)); //kompajler ne može automatski da zaključi da je declare_parameter član klase, pa moraš staviti this-> da to naglasiš.
+                                                                      //staticko kastovanje podrazuvema da kompajler ne proverava validnost kastovanja u runtime-u, nego da se ono izvrsi bez obzira na sve
   dev_name_ = this->declare_parameter("device_name", std::string(""));
 
   // The user specifies the deadzone to us in the range of 0.0 to 1.0.  Later on
@@ -114,10 +118,11 @@ Joy::Joy(const rclcpp::NodeOptions & options)
   event_thread_ = std::thread(&Joy::eventThread, this);
 }
 
+//destrkutor
 Joy::~Joy()
 {
-  exit_signal_.set_value();
-  event_thread_.join();
+  exit_signal_.set_value(); //signalizira zavrsetak rada
+  event_thread_.join();// da ne bi bio viseci thread, ceka se zavrsetak thread-a  pre nego sto objekat bude unisten
   if (haptic_ != nullptr) {
     SDL_HapticClose(haptic_);
   }

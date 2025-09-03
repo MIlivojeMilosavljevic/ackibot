@@ -5,7 +5,7 @@
 
 #include <memory>
 
-using mybot::DiffDriveController;
+using ackibot::DiffDriveController;
 
 //konstruktor klase DiffDriveController
 

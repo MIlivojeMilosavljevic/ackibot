@@ -1,6 +1,6 @@
 #!/bin/bash
 
-exit 0
+#exit 0
 
 
 source /opt/ros/jazzy/setup.bash

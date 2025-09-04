@@ -63,7 +63,8 @@ private:
 	LibSerial::SerialPort motor_ctrl_sensor_hub_serial;
 
 
-	i16 speed[2];
+	i16 speed;           // brzina kretanja napred/nazad (za BLDC)
+	i16 steering_angle;  // ugao skretanja volana (za servo)
 	u8 watchdog_cnt;
 	void watchdog_rst();
 	void watchdog_dec();

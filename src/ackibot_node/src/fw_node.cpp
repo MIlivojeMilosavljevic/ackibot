@@ -142,9 +142,8 @@ void FW_Node::watchdog_dec() {
 
 void FW_Node::watchdog_apply() {
 	if(watchdog_cnt == 0){
-		for(int i = 0; i < 2; i++){
-			speed[i] = 0;
-		}
+		speed = 0;
+		steering_angle = 90;
 	}
 }
 
@@ -169,40 +168,57 @@ void FW_Node::cmd_vel__cb(const geometry_msgs::msg::TwistStamped::SharedPtr msg)
 
 	
 	//PRETVARA NORMALIZOVANE BRZINE U VREDNOSTI ZA MOTORE (-2047, 2047)//////////////////////////////////////////////////////////////////////
+
 	// [-1.0, 1.0] -> [reverse, forward]
-	double drive = cmd.linear.x*2047;
+	speed = static_cast<i16>(cmd.linear.x*2047);
+
 	// [1.0, -1.0] -> [left, right].
-	double turn = cmd.angular.z*2047;
+	steering_angle = static_cast<i16>(((cmd.angular.z + 1.0)/2.0 * 180));  //mapira ugaonu brzinu na uglove od 0 do 180
 
-	//CUVA VREDNOSTI BRZINA ZA LEVI I DESNI TOCAK
-	double motor[2]; // left, right
-
-	//Preprocesorske direktive, if1 se uvek kompajlira, else uvek ignorise
-#if 1
-	// Diff drive: steering in place.
-	motor[L_WHEEL] = drive - turn;			//LEVI TOCAK SE SPORIJE KRECE KADA SE SKRECE U DESNO
-	motor[R_WHEEL] = drive + turn;			//DESNI TOCAK SE SPORIJE KRECE KADA SE SKRECE U LEVO
-#else
-	motor[L_WHEEL] = drive;
-	motor[R_WHEEL] = drive;
-	if(turn >= 0){
-		motor[L_WHEEL] -= turn;
-	}else{
-		motor[R_WHEEL] -= turn;
-	}
-#endif
-
-
-	//ogranicava vrednosti brzina na dozvoljeni opseg
-	for(int i = 0; i < 2; i++){
-		motor[i] = std::clamp(
-			motor[i],
-			-double(MODULUS-1),
-			+double(MODULUS-1)
+	speed = 
+		std::clamp(
+			speed,
+			i16(-MODULUS + 1), 
+			i16(MODULUS - 1)
 		);
 
-		speed[i] = motor[i];
-	}
+	steering_angle = 
+		std::clamp(
+			steering_angle,
+			i16(0),
+			i16(180)
+		);
+
+
+	//CUVA VREDNOSTI BRZINA ZA LEVI I DESNI TOCAK
+	//double motor[2]; // left, right
+
+	//Preprocesorske direktive, if1 se uvek kompajlira, else uvek ignorise
+// #if 1
+// 	// Diff drive: steering in place.
+// 	motor[L_WHEEL] = drive - turn;			//LEVI TOCAK SE SPORIJE KRECE KADA SE SKRECE U DESNO
+// 	motor[R_WHEEL] = drive + turn;			//DESNI TOCAK SE SPORIJE KRECE KADA SE SKRECE U LEVO
+// #else
+// 	motor[L_WHEEL] = drive;
+// 	motor[R_WHEEL] = drive;
+// 	if(turn >= 0){
+// 		motor[L_WHEEL] -= turn;
+// 	}else{
+// 		motor[R_WHEEL] -= turn;
+// 	}
+// #endif
+
+
+	// //ogranicava vrednosti brzina na dozvoljeni opseg
+	// for(int i = 0; i < 2; i++){
+	// 	motor[i] = std::clamp(
+	// 		motor[i],
+	// 		-double(MODULUS-1),
+	// 		+double(MODULUS-1)
+	// 	);
+
+	// 	speed[i] = motor[i];
+	// }
 
 #if 0
 	RCLCPP_INFO(
@@ -238,8 +254,8 @@ void FW_Node::write_pkg() {
 	pkg_m2s_t& p = *reinterpret_cast<pkg_m2s_t*>(wr_buf.data());
 	p.magic = PKG_MAGIC;
 	//postavlja trenutne brzine motora u paket
-	p.payload.speed[0] = speed[0];
-	p.payload.speed[1] = speed[1];
+	p.payload.speed = speed;
+	p.payload.steering_angle = steering_angle;
 	//postavlja rampu - koliko brzo motor treba da dostigne zadatu brzinu
 	p.payload.ramp_rate_ms = 2000; // TODO
 

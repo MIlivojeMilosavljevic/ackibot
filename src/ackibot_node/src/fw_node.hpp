@@ -83,7 +83,8 @@ private:
 	void read__loop();
 	std::vector<u8> rd_buf;
 	void read_pkg();
-	i32 prev_enc[2];
+	i32 prev_enc;
+	//i32 prev_enc[2];
 	rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state__pub;
 
 };

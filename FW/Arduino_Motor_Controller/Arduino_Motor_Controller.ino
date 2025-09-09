@@ -1,17 +1,17 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#define M0_PWM 9
-#define M0_DIR_P 8
-#define M0_DIR_N 11
-#define M1_DIR_P 12
-#define M1_DIR_N 13
-#define M1_PWM 10
+#define M0_PWM 3
+#define M0_DIR 4
+//#define M0_DIR_N 11
+//#define M1_DIR_P 12
+//#define M1_DIR_N 13
+#define M1_PWM 8
 
 #define ENC0_A A0
 #define ENC0_B A1
-#define ENC1_A A2
-#define ENC1_B A3
+// #define ENC1_A A2
+// #define ENC1_B A3
 
 // Ramp rate selection.
 #define CFG_0 4
@@ -67,6 +67,10 @@
 #define SENSOR_HZ 25
 
 ///////////////////////////////////////////////////////////////////////////////
+#define BLDC 0
+#define SERVO 1
+
+///////////////////////////////////////////////////////////////////////////////
 
 #include "SoftwareSerial2.h"
 
@@ -75,6 +79,8 @@
 #include "sabertooth.h"
 
 #include "fw_pkgs.hpp"
+
+#include <Servo.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -109,22 +115,79 @@ enum dir_t {
 };
 
 // TODO: VIDJETI LOGIKU OKO PINOVA
-void set_dir(dir_t dir){
-	if(dir == CW){
-		digitalWrite(M0_DIR_P, 1);
-		digitalWrite(M0_DIR_N, 0);
-	}else{
-		digitalWrite(M0_DIR_P, 0);
-		digitalWrite(M0_DIR_N, 1);
+void set_dir(int motor, dir_t dir){
+	// switch(motor_idx){
+	// 	case 0:
+	// 		if(dir == CW){
+	// 			digitalWrite(M0_DIR_P, 1);
+	// 			digitalWrite(M0_DIR_N, 0);
+	// 		}else{
+	// 			digitalWrite(M0_DIR_P, 0);
+	// 			digitalWrite(M0_DIR_N, 1);
+	// 		}
+	// 		break;
+	// 	case 1:
+	// 		if(dir == CW){
+	// 			digitalWrite(M1_DIR_P, 1);
+	// 			digitalWrite(M1_DIR_N, 0);
+	// 		}else{
+	// 			digitalWrite(M1_DIR_P, 0);
+	// 			digitalWrite(M1_DIR_N, 1);
+	// 		}
+	// 		break;
+	// 	default:
+	// 		// Out of range.
+	// 		return;
+	// }
+
+	// TODO: Realizovati razlicite pinove za BLDC i SERVO
+	switch (motor) {
+		case BLDC:
+			if(dir == CW){
+				digitalWrite(M0_DIR, 1); //KOD BLDC 1 (HIGH) IDE U CW SMJERU
+				//digitalWrite(M0_DIR_, 0);
+			}else{
+				digitalWrite(M0_DIR, 0); //KOD BLDC 0 (LOW) IDE CCW, a prestace da se krece kada je PWM = 0
+				// digitalWrite(M0_DIR_N, 1);
+			}
+			break;
+
+		// case SERVO:
+		// 	if(dir == CW){
+		// 		digitalWrite(M0_DIR_P, 1);
+		// 		digitalWrite(M0_DIR_N, 0);
+		// 	}else{
+		// 		digitalWrite(M0_DIR_P, 0);
+		// 		digitalWrite(M0_DIR_N, 1);
+		// 	}
+			//break;
+	
+		default:
+			return;
 	}
+	
 }
 // TODO: MOZDA IMPLEMENTIRATI LOGIKU SWITCH CASE ZA RAZLICITE PINOVE ZA SERVO I BLDC MOTOR
 void set_pwm(u16 s){
-	tc1.ocrb = s;
+
+	tc2.ocr2b = s; // hardverski tajmer, postavka pwm za bldc 
 }
 
 
-template<typename T>
+
+Servo servo;
+
+void setup() {
+  servo.attach(8); // pin 8 za servo
+}
+
+void set_pwm_servo(int angle) {
+  angle = constrain(angle, 0, 180);  // Uveri se da je u opsegu
+  servo.write(angle);                // Pošalji ugao servu
+}
+
+
+template<typename T>0
 T clamp(T val, T min_lim, T max_lim) {
 	if(val < min_lim){
 		return min_lim;
@@ -257,17 +320,19 @@ volatile steering_angle_t steering_angle_o;
 
 // TODO: MOZDA CEMO KAO PARAMTAR PROSLJEDJIVATI BLDC ILI SERVO MOTOR OZNAKU
 void set_bldc() {
-	set_dir( 
+	set_dir(
+		BLDC,
 		speed_o >= 0 ? CW : CCW
 	);
 	set_pwm(abs(speed_o));
 }
 
 void set_servo() {
-	set_dir( 
+	set_dir(
+		SERVO,
 		steering_angle_o >= 90 ? CW : CCW
 	);
-	set_pwm(abs(steering_angle_o));
+	set_pwm_servo(abs(steering_angle_o));
 }
 
 template<typename T>
@@ -312,9 +377,11 @@ ISR(TIMER1_OVF_vect) {
 
 	watchdog_dec();
 	
-	for(u8 i = 0; i < 2; i++){
-		ramp_speed(i);
-	}
+	//for(u8 i = 0; i < 2; i++){
+	//	ramp_speed(i);
+	//}
+	ramp_speed();
+	ramp_steering_angle();
 }
 
 ISR(TIMER1_COMPA_vect) {
@@ -331,12 +398,13 @@ ISR(TIMER1_COMPA_vect) {
 ISR(TIMER1_COMPB_vect) {
 }
 
-
+// Setovanje brzine
 void set_target_speed(i16 val) {
 	i16 new_pwm = sym_clamp(val, MODULUS-1);
 	speed_i = new_pwm;
 }
 
+// Setovanje ugla
 void set_target_steering_angle(i16 val) {
 	i16 new_pwm = sym_clamp(val, 180);
 	steering_angle_i = new_pwm;
@@ -345,8 +413,8 @@ void set_target_steering_angle(i16 val) {
 ///////////////////////////////////////////////////////////////////////////////
 
 
-volatile i32 enc[2];
-
+//volatile i32 enc[2];
+volatile i32 enc;
 
 /**
  * Incrementing sequence is 00, 01, 11, 10
@@ -364,7 +432,7 @@ const i8 enc_ba_to_pos_inc[4][4] = {
 union bf_enc {
 	struct {
 		u8 ba0 : 2;
-		u8 ba1 : 2;
+		//u8 ba1 : 2;
 	};
 	u8 r : 8;
 };
@@ -375,11 +443,11 @@ ISR(PCINT1_vect) {
 	
 	curr.r = PINC;
 	
-	i8 inc0 = enc_ba_to_pos_inc[prev.ba0][curr.ba0];
-	i8 inc1 = enc_ba_to_pos_inc[prev.ba1][curr.ba1];
+	i8 inc = enc_ba_to_pos_inc[prev.ba0][curr.ba0];
+	//i8 inc1 = enc_ba_to_pos_inc[prev.ba1][curr.ba1];
 
-	enc[0] += inc0;
-	enc[1] += inc1;
+	enc += inc;
+	//enc[1] += inc1;
 	
 	prev = curr;
 }
@@ -396,10 +464,10 @@ void setup() {
 	pinMode(TOP_OF_PWM, OUTPUT);
 	
 	pinMode(M0_PWM, OUTPUT);
-	pinMode(M0_DIR_P, OUTPUT);
-	pinMode(M0_DIR_N, OUTPUT);
-	pinMode(M1_DIR_P, OUTPUT);
-	pinMode(M1_DIR_N, OUTPUT);
+	pinMode(M0_DIR, OUTPUT);
+	//pinMode(M0_DIR_N, OUTPUT);
+	//pinMode(M1_DIR_P, OUTPUT);
+	// pinMode(M1_DIR_N, OUTPUT);
 	pinMode(M1_PWM, OUTPUT);
 
 	pinMode(CFG_0, INPUT_PULLUP);
@@ -409,24 +477,26 @@ void setup() {
 
 
 
-	// Enc cfg
+	// Enc cfg - jedan enkoder na A0 (PC0/PCINT8) i A1 (PC1/PCINT9)
 	pinMode(ENC0_A, INPUT_PULLUP);
 	pinMode(ENC0_B, INPUT_PULLUP);
-	pinMode(ENC1_A, INPUT_PULLUP);
-	pinMode(ENC1_B, INPUT_PULLUP);
-	irq.pcie1 = 1; // Port C
+	//pinMode(ENC1_A, INPUT_PULLUP);
+	//pinMode(ENC1_B, INPUT_PULLUP);
+	irq.pcie1 = 1; // Port C, ukljuci Pin Change Interrupt grupu za PORT C
 	// PC0-3
 	// WARNING: This too need to be changed with ENC pins.
 	//TODO Figure out which pcint to set from ENC0_A...
-	irq.pcint08 = 1;
-	irq.pcint09 = 1;
-	irq.pcint10 = 1;
-	irq.pcint11 = 1;
+	irq.pcint08 = 1; // omoguci prekid za A0 (PCIN8)
+	irq.pcint09 = 1; // omoguci prekid za A1 (PCIN9)
+	// irq.pcint10 = 1;
+	// irq.pcint11 = 1;
 
 	
-	for(u8 i = 0; i < 2; i++){
-		set_target_speed(i, 0);
-	}
+	// for(u8 i = 0; i < 2; i++){
+	// 	set_target_speed(i, 0);
+	// }
+	set_target_speed(0);
+	set_target_steering_angle(90);
 
 /**
  * Ramp Rate selection.
@@ -449,6 +519,8 @@ void setup() {
 			break;
 	}
 	speed_ramp_delta = ramp_rate_2_speed_ramp_delta(ramp_rate);
+	steering_angle_ramp_delta = ramp_rate_2_steering_angle_ramp_delta(ramp_rate);
+
 
 	
 	tc1.tccra = 0;
@@ -477,12 +549,16 @@ void setup() {
 	DEBUG(PWM_HZ);
 	DEBUG(WATCHDOG_TIMEOUT_PERIODS);
 	DEBUG(speed_ramp_delta);
+	DEBUG(steering_angle_ramp_delta);
 #if 1
 	DEBUG(digitalRead(CFG_0));
 	DEBUG(ramp_rate);
 	DEBUG(ramp_rate_2_speed_ramp_delta(DEFAULT_RAMP_RATE));
 	DEBUG(ramp_rate_2_speed_ramp_delta(SLOW_RAMP_RATE));
 	DEBUG(ramp_rate_2_speed_ramp_delta(FAST_RAMP_RATE));
+	DEBUG(ramp_rate_2_steering_angle_ramp_delta(DEFAULT_RAMP_RATE));
+	DEBUG(ramp_rate_2_steering_angle_ramp_delta(SLOW_RAMP_RATE));
+	DEBUG(ramp_rate_2_steering_angle_ramp_delta(FAST_RAMP_RATE));
 #endif
 
 DEBUG(sizeof(pkg_m2s_t));
@@ -491,6 +567,7 @@ DEBUG(sizeof(pkg_s2m_t));
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// Puluje povremeno da vidi da li ima paket
 void poll_pkg() {
 	watchdog_apply();
 
@@ -539,14 +616,19 @@ void poll_pkg() {
 		sw_ser.println("ERROR: Wrong CRC!");
 		return;
 	}
-
-	for(u8 i = 0; i < 2; i++){
-		//TODO call set_speed(), set_steering_angle()
-		set_target_speed(
-			i,
-			p.payload.speed[i]
-		);
-	}
+	
+	// Setovanje brzine i ugla
+	set_target_speed(p.payload.speed);
+	set_target_steering_angle(p.payload.steering_angle);
+	// TODO call set_speed(), set_steering_angle()
+	// KOD IZ PRETHODNOG PROJEKTA
+	// for(u8 i = 0; i < 2; i++){
+	// 	// Postavlja se za 2 motora
+	// 	set_target_speed(
+	// 		i,
+	// 		p.payload.speed[i]
+	// 	);
+	// }
 
 	watchdog_rst();
 }
@@ -602,28 +684,32 @@ void print_status_if_changed() {
 }
 
 
-
+// Metoda za popunjavanje paketa koji se salje sa mikrokontrolera na pc
 void send_pkg() {
 	pkg_s2m_t p;
 	p.magic = PKG_MAGIC;
 
+	// TODO: Zakomentarisati enkoder jer nam ne treba, realizovati slanje rezultata ultrazvucnog senzora
 	// Voting read.
-	for(u8 i = 0; i < 2; i++){
-		do{
-			p.payload.enc[i] = enc[i];
-		}while(p.payload.enc[i] != enc[i]);
+	// for(u8 i = 0; i < 2; i++){
+	// 	do{
+	// 		p.payload.enc[i] = enc[i];
+	// 	}while(p.payload.enc[i] != enc[i]);
 
-		do{
-			p.payload.speed_i[i] = speed_i[i];
-		}while(p.payload.speed_i[i] != speed_i[i]);
-		do{
-			p.payload.speed_o[i] = speed_o[i];
-		}while(p.payload.speed_o[i] != speed_o[i]);
-	}
+	// 	do{
+	// 		p.payload.speed_i[i] = speed_i[i];
+	// 	}while(p.payload.speed_i[i] != speed_i[i]);
+	// 	do{
+	// 		p.payload.speed_o[i] = speed_o[i];
+	// 	}while(p.payload.speed_o[i] != speed_o[i]);
+	// }
+	p.payload.enc = enc;
+	// treba nam niz za rezultata ultrazvucnog senzora
 	p.payload.cfg = read_cfg();
 
 	p.crc = CRC16().add(p.payload).get_crc();
 
+	// Upisuje paketotor
 	Serial.write(
 		reinterpret_cast<u8*>(&p),
 		sizeof(p)

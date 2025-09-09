@@ -38,8 +38,8 @@ FW_Node::FW_Node(const std::string & usb_port)
 {
 	RCLCPP_INFO(get_logger(), "Init FW_Node Node Main");
 
-	prev_enc[0] = 0;
-	prev_enc[1] = 0;
+	prev_enc = 0;
+	//prev_enc[1] = 0;
 
 	//priprema bafera za slanje i prijem paketa
 	wr_buf.resize(sizeof(pkg_m2s_t));
@@ -349,21 +349,21 @@ void FW_Node::read_pkg() {
 
 	//promena znaka enkodera desnog tocka?????????????????????????????????????????????
 	// Switch sign of 1 enc.
-	p.payload.enc[R_WHEEL] = -p.payload.enc[R_WHEEL];
+	// p.payload.enc[R_WHEEL] = -p.payload.enc[R_WHEEL];
 
-	// Only if changed.
-	//prikazuje enkodere samo ako su se promenili u odnosu na prethodnu vrednost
-	//sprecava spamovanje loga istim vrednostima
-	for(int i = 0; i < 2; i++){
-		if(p.payload.enc[i] != prev_enc[i]){
-			RCLCPP_INFO(
-				this->get_logger(), "L_enc = % 10d\tR_enc = % 10d",
-				p.payload.enc[L_WHEEL],
-				p.payload.enc[R_WHEEL]
-			);
-			break;
-		}
-	}
+	// // Only if changed.
+	// //prikazuje enkodere samo ako su se promenili u odnosu na prethodnu vrednost
+	// //sprecava spamovanje loga istim vrednostima
+	// for(int i = 0; i < 2; i++){
+	// 	if(p.payload.enc[i] != prev_enc[i]){
+	// 		RCLCPP_INFO(
+	// 			this->get_logger(), "L_enc = % 10d\tR_enc = % 10d",
+	// 			p.payload.enc[L_WHEEL],
+	// 			p.payload.enc[R_WHEEL]
+	// 		);
+	// 		break;
+	// 	}
+	// }
 #if 0
 	DEBUG(p.payload.speed_i[0]);
 	DEBUG(p.payload.speed_i[1]);
@@ -372,9 +372,10 @@ void FW_Node::read_pkg() {
 #endif
 
 	//cuva prethodne vrednosti enkodera
-	for(int i = 0; i < 2; i++){
-		prev_enc[i] = p.payload.enc[i];
-	}
+	// for(int i = 0; i < 2; i++){
+	// 	prev_enc[i] = p.payload.enc[i];
+	// }
+	prev_enc = p.payload.enc;
 
 	//publikuje procitane vrednosti enkodera na joint_states topik
 	auto msg = std::make_unique<sensor_msgs::msg::JointState>();
@@ -383,11 +384,14 @@ void FW_Node::read_pkg() {
 	msg->header.frame_id = "base_link";
 	msg->header.stamp = this->now();
 	//postavlja imena zglobova
-	msg->name.push_back("wheel_left_joint");
-	msg->name.push_back("wheel_right_joint");
+	//msg->name.push_back("wheel_left_joint");
+	//msg->name.push_back("wheel_right_joint");
+	msg->name.push_back("bldc_position");
 	//pretvaraju enkoder tikove u rotaciju tockova i stavljaju u poruku da bi ostali cvorovi znali kako su tockovi okrenuti
-	msg->position.push_back(tick_to_rad * p.payload.enc[L_WHEEL]);
-	msg->position.push_back(tick_to_rad * p.payload.enc[R_WHEEL]);
+	// msg->position.push_back(tick_to_rad * p.payload.enc[L_WHEEL]);
+	// msg->position.push_back(tick_to_rad * p.payload.enc[R_WHEEL]);
+	msg->position.push_back(tick_to_rad * p.payload.enc);
+
 
 	joint_state__pub->publish(std::move(msg));
 }

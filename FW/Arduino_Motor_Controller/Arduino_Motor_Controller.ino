@@ -555,7 +555,6 @@ void setup() {
   watchdog_cnt = 255;
   
   set_target_speed(0);
-  set_bldc_from_speed(0); //
   set_target_steering_angle(90);
 
 /**

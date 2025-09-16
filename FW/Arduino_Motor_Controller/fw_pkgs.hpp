@@ -8,8 +8,6 @@
 
 
 #define MODULUS 2048
-
-
 typedef u16 pkg_magic_t;
 typedef u16 pkg_crc_t;
 
@@ -20,7 +18,7 @@ struct_packed pkg_m2s_t {
 	struct_packed {
 		i16 speed;
         i16 steering_angle;
-		u16 ramp_rate_ms;
+		//u16 ramp_rate_ms;
 	} payload;
 	pkg_crc_t crc;
 };
@@ -33,7 +31,7 @@ struct_packed pkg_s2m_t {
 		i16 speed_o;
         i16 steering_angle_i;
         i16 steering_angle_o;
-		u8 cfg;
+		//u8 cfg;
 	} payload;
 	pkg_crc_t crc;
 };

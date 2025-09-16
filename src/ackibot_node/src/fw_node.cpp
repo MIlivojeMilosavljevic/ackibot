@@ -257,7 +257,7 @@ void FW_Node::write_pkg() {
 	p.payload.speed = speed;
 	p.payload.steering_angle = steering_angle;
 	//postavlja rampu - koliko brzo motor treba da dostigne zadatu brzinu
-	p.payload.ramp_rate_ms = 2000; // TODO
+	//p.payload.ramp_rate_ms = 2000; // TODO
 
 	//racuna crc sumu za paket - procera integriteta podataka, da paket nije ostecen prilikom prenosa
 	p.crc = CRC16().add(p.payload).get_crc();

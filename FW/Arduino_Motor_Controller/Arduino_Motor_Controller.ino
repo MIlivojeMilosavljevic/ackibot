@@ -14,11 +14,11 @@
 // #define ENC1_B A3
 
 // Ramp rate selection.
-#define CFG_0 4
-#define CFG_1 5
-
-#define CFG_2 6
-#define CFG_3 7
+//#define CFG_0 4
+//#define CFG_1 5
+//
+//#define CFG_2 6
+//#define CFG_3 7
 
 
 // L298 settings.
@@ -36,8 +36,8 @@
 
 #define TOP_OF_PWM A6
 
-#define SW_UART_TX 2
-#define SW_UART_RX 3
+//#define SW_UART_TX 2
+//#define SW_UART_RX 3
 
 ///////////////////////////////////////////////////////////////////////////////
 // Cfg.
@@ -54,11 +54,11 @@
 //TODO Not defines but from settings.
 #if 0
 // L289
-#define PRESCALER_CFG 0b011
+//#define PRESCALER_CFG 0b011
 #define PRESCALER 64
 #else
 // Cytron
-#define PRESCALER_CFG 0b010
+//#define PRESCALER_CFG 0b010
 #define PRESCALER 8
 #endif
 
@@ -82,19 +82,20 @@
 
 #include <Servo.h>
 
+bool console_mode = true;  // start u konzolnom režimu radi testiranja
 
 
 ///////////////////////////////////////////////////////////////////////////////
 
-SoftwareSerial sw_ser(SW_UART_RX, SW_UART_TX);
-#define DEBUG(x) \
-  do{ \
-    sw_ser.print(#x" = "); sw_ser.println(x); \
-  }while(0)
-#define DEBUG_HEX(x) \
-  do{ \
-    sw_ser.print(#x" = 0x"); sw_ser.println(x, HEX); \
-  }while(0)
+//SoftwareSerial sw_ser(SW_UART_RX, SW_UART_TX);
+//#define DEBUG(x) \
+//  do{ \
+//    sw_ser.print(#x" = "); sw_ser.println(x); \
+//  }while(0)
+//#define DEBUG_HEX(x) \
+//  do{ \
+//    sw_ser.print(#x" = 0x"); sw_ser.println(x, HEX); \
+//  }while(0)
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -163,11 +164,12 @@ void set_dir(int motor, dir_t dir){
   
 }
 // TODO: MOZDA IMPLEMENTIRATI LOGIKU SWITCH CASE ZA RAZLICITE PINOVE ZA SERVO I BLDC MOTOR
-void set_pwm(u16 s){
-
-//  tc2.ocrb = s; // hardverski tajmer, postavka pwm za bldc 
-  OCR2B = s;
-}
+//void set_pwm(u16 s){
+//
+////  tc2.ocrb = s; // hardverski tajmer, postavka pwm za bldc 
+//  //OCR2B = s;
+//  
+//}
 
 
 
@@ -178,6 +180,15 @@ Servo servo;
 void set_servo_angle(int angle) {
   angle = constrain(angle, 0, 180);  // Uveri se da je u opsegu
   servo.write(angle); // Pošalji ugao servu
+
+// --- TEST PROGRAM ---
+//  servo.write(90);
+//  delay(500);
+//  servo.write(45);
+//  delay(500);
+//  servo.write(10);
+//  delay(500);
+//  servo.write(70);
 }
 
 
@@ -207,13 +218,13 @@ T sign(T val) {
 #define PWM_HZ ((F_CPU)/(PRESCALER)/(MODULUS)/2)
 
 
-u8 read_cfg() {
-  return
-    digitalRead(CFG_0)<<0 |
-    digitalRead(CFG_1)<<1 |
-    digitalRead(CFG_2)<<2 |
-    digitalRead(CFG_3)<<3;
-}
+//u8 read_cfg() {
+//  return
+//    digitalRead(CFG_0)<<0 |
+//    digitalRead(CFG_1)<<1 |
+//    digitalRead(CFG_2)<<2 |
+//    digitalRead(CFG_3)<<3;
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -233,16 +244,16 @@ void watchdog_rst() {
 void watchdog_dec() {
   if(watchdog_cnt != 0){
     watchdog_cnt--;
-    if(watchdog_cnt == 0){
-      sw_ser.println("WARN: Watchdog stop motors!");
-    }
+//    if(watchdog_cnt == 0){
+//      sw_ser.println("WARN: Watchdog stop motors!");
+//    }
   }
 }
 
 void watchdog_apply() {
   if(watchdog_cnt == 0){
     
-    set_target_speed(0);
+    //set_target_speed(0);
 
     set_target_steering_angle(90);
     
@@ -349,7 +360,7 @@ void set_bldc_from_speed(int16_t speed_val) {
   if(pwm == 0) {
     // stop motor
     digitalWrite(M0_DIR, LOW); // definicija: LOW = stop/direction prema tvom hardveru
-    analogWrite(M0_PWM, 0);
+    analogWrite(M0_PWM, 255);
     return;
   }
 
@@ -360,7 +371,7 @@ void set_bldc_from_speed(int16_t speed_val) {
     digitalWrite(M0_DIR, LOW);
   }
 
-  analogWrite(M0_PWM, pwm); // 0-255
+  analogWrite(M0_PWM, 255 - pwm); // 0-255
 }
 //
 //void set_servo() {
@@ -444,6 +455,7 @@ void set_target_speed(i16 val) {
   speed_i = val;
   // primeni odmah (možeš promeniti logiku ako želiš da se rampuje)
   set_bldc_from_speed(speed_i);
+  
 }
 void set_target_steering_angle(i16 val) {
   steering_angle_i = val;
@@ -504,28 +516,32 @@ ISR(PCINT1_vect) {
 
 void setup() {
 
+ 
   servo.attach(M1_PWM); // pin 8 za servo
 
   Serial.begin(DEFUALT_BAUDRATE);
   
-  sw_ser.begin(115200);
+  //ser.begin(115200);
 
   pinMode(TOP_OF_PWM, OUTPUT);
   
   pinMode(M0_PWM, OUTPUT);
+  analogWrite(M0_PWM, 0);
+
   pinMode(M0_DIR, OUTPUT);
+  digitalWrite(M0_DIR, LOW);  // low = CW
   //pinMode(M0_DIR_N, OUTPUT);
   //pinMode(M1_DIR_P, OUTPUT);
   // pinMode(M1_DIR_N, OUTPUT);
   pinMode(M1_PWM, OUTPUT);
 
-  pinMode(CFG_0, INPUT_PULLUP);
-  pinMode(CFG_1, INPUT_PULLUP);
-  pinMode(CFG_2, INPUT_PULLUP);
-  pinMode(CFG_3, INPUT_PULLUP);
+  //pinMode(CFG_0, INPUT_PULLUP);
+//  pinMode(CFG_1, INPUT_PULLUP);
+//  pinMode(CFG_2, INPUT_PULLUP);
+//  pinMode(CFG_3, INPUT_PULLUP);
 
-  digitalWrite(M0_PWM, HIGH);
-  digitalWrite(M0_DIR, HIGH);
+  //digitalWrite(M0_PWM, HIGH);
+  //digitalWrite(M0_DIR, HIGH);
 
 
 
@@ -550,12 +566,19 @@ void setup() {
 
   // Inicijalne vrednosti
   speed_i = 0;
-  steering_angle_i = 90;
+  steering_angle_i = 90; 
+  speed_o = 0;
+  steering_angle_o = 90;
   enc = 0;
   watchdog_cnt = 255;
   
   set_target_speed(0);
   set_target_steering_angle(90);
+
+  if (console_mode) {
+    Serial.println(F("\n[Arduino] Console mode ON. Kucaj H za help."));
+  }
+
 
 /**
  * Ramp Rate selection.
@@ -563,7 +586,7 @@ void setup() {
  * jo - 10 -> L298
  * jj - 01 -> Old School Motor Driver
  */
-  u8 cfg = read_cfg();
+ // u8 cfg = read_cfg();
 //  u16 ramp_rate;
 //  switch(cfg & 0b0011){
 //    case 0b11:
@@ -604,10 +627,10 @@ void setup() {
   
 
 
- sw_ser.println("Arduino Motor Controller (1 BLDC + 1 Servo) - minimal");
-  DEBUG(DEFUALT_BAUDRATE);
-  DEBUG(sizeof(pkg_m2s_t));
-  DEBUG(sizeof(pkg_s2m_t));
+ //sw_ser.println("Arduino Motor Controller (1 BLDC + 1 Servo) - minimal");
+  //DEBUG(DEFUALT_BAUDRATE);
+ // DEBUG(sizeof(pkg_m2s_t));
+ // DEBUG(sizeof(pkg_s2m_t));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -631,10 +654,10 @@ void poll_pkg() {
       &b,
       1
     );
-    if(len != 1){
-      sw_ser.println("ERROR: Lost start of pkg!");
+   if(len != 1){
+//      sw_ser.println("ERROR: Lost start of pkg!");
       return;
-    }
+   }
 
     reinterpret_cast<u8*>(&obs_magic)[i] = b;
 
@@ -658,13 +681,14 @@ void poll_pkg() {
   
   pkg_crc_t obs_crc = CRC16().add(p.payload).get_crc();
   if(obs_crc != p.crc){
-    sw_ser.println("ERROR: Wrong CRC!");
-    return;
+//    sw_ser.println("ERROR: Wrong CRC!");
+   return;
   }
   
   // Setovanje brzine i ugla
   set_target_speed(p.payload.speed);
   set_target_steering_angle(p.payload.steering_angle);
+
   // TODO call set_speed(), set_steering_angle()
   // KOD IZ PRETHODNOG PROJEKTA
   // for(u8 i = 0; i < 2; i++){
@@ -682,8 +706,8 @@ void print_status() {
   static u8 cnt;
   cnt++;
   if(cnt == 10){
-    cnt = 0;
-    sw_ser.println("  speed_i\t   enc\t steering");
+   cnt = 0;
+//    sw_ser.println("  speed_i\t   enc\t steering");
   }
 
   const int L = 4*6 + 2*10 + 2;
@@ -697,7 +721,7 @@ void print_status() {
     steering_angle_i
   );
   
-  sw_ser.println(buf);
+  //sw_ser.println(buf);
 }
 
 void print_status_if_changed() {
@@ -755,7 +779,7 @@ void send_pkg() {
 
   //p.payload.enc = enc;
   // treba nam niz za rezultata ultrazvucnog senzora
-  p.payload.cfg = read_cfg();
+ // p.payload.cfg = read_cfg();
 
   p.crc = CRC16().add(p.payload).get_crc();
 
@@ -770,6 +794,16 @@ void send_pkg() {
 typedef unsigned long ms_t;
 
 void loop() {
+  if (console_mode) {
+    // Tekstualni režim za picocom
+    handle_console();
+    print_status_if_changed();  // opciono: tiho stanje bez spama
+    // ne zovi send_pkg() u konzolnom rezimu da ne izlazi binarni „šum”
+    delay(1);
+    return;
+  }
+
+  
   poll_pkg();
 
 
@@ -790,6 +824,61 @@ void loop() {
       print_status();
     }
   }
+  handle_console();
 
-  
+}
+// ===== Console mode toggle =====
+
+void print_help() {
+  Serial.println(F("=== Console Mode ==="));
+  Serial.println(F("Komande:"));
+  Serial.println(F("  S<val>   -> Set speed, npr: S200 ili S-150"));
+  Serial.println(F("  A<deg>   -> Set servo angle [0..180], npr: A120"));
+  Serial.println(F("  P        -> Print status (enc, speed, angle)"));
+  Serial.println(F("  BIN      -> Predji u binarni rezim (ROS/packet)"));
+  Serial.println(F("  CON      -> Vrati se u konzolni rezim"));
+  Serial.println(F("  H        -> Help"));
+}
+
+void handle_console() {
+  if (!Serial.available()) return;
+
+  String cmd = Serial.readStringUntil('\n');
+  cmd.trim();
+  cmd.toUpperCase();
+
+  if (cmd == "H" || cmd == "HELP") {
+    print_help();
+    return;
+  }
+  if (cmd == "CON") {
+    console_mode = true;
+    Serial.println(F("Console mode ON"));
+    return;
+  }
+  if (cmd == "BIN") {
+    console_mode = false;
+    Serial.println(F("Binary (packet) mode ON"));
+    return;
+  }
+  if (cmd == "P") {
+    Serial.print(F("enc=")); Serial.print((long)enc);
+    Serial.print(F(" speed_i=")); Serial.print((int)speed_i);
+    Serial.print(F(" angle=")); Serial.println((int)steering_angle_i);
+    return;
+  }
+  if (cmd.startsWith("S")) {
+    int val = cmd.substring(1).toInt();
+    set_target_speed(val);
+    Serial.print(F("Speed set to ")); Serial.println(val);
+    return;
+  }
+  if (cmd.startsWith("A")) {
+    int val = cmd.substring(1).toInt();
+    set_target_steering_angle(val);
+    Serial.print(F("Angle set to ")); Serial.println(val);
+    return;
+  }
+
+  Serial.println(F("Nepoznata komanda. Kucaj H za help."));
 }

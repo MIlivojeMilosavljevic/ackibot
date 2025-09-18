@@ -36,15 +36,12 @@
 
 #define TOP_OF_PWM A6
 
-//#define SW_UART_TX 2
-//#define SW_UART_RX 3
+#define SW_UART_TX 11
+#define SW_UART_RX 10
 
 ///////////////////////////////////////////////////////////////////////////////
 // Cfg.
 
-// Sabertooth settings.
-//#define DEFUALT_BAUDRATE 9600
-#define DEFUALT_BAUDRATE 115200
 
 // Sabertooth settings.
 #define DEFAULT_RAMP_RATE 2047 // Maximum.
@@ -82,20 +79,20 @@
 
 #include <Servo.h>
 
-bool console_mode = true;  // start u konzolnom režimu radi testiranja
+//bool console_mode = true;  // start u konzolnom režimu radi testiranja
 
 
 ///////////////////////////////////////////////////////////////////////////////
 
-//SoftwareSerial sw_ser(SW_UART_RX, SW_UART_TX);
-//#define DEBUG(x) \
-//  do{ \
-//    sw_ser.print(#x" = "); sw_ser.println(x); \
-//  }while(0)
-//#define DEBUG_HEX(x) \
-//  do{ \
-//    sw_ser.print(#x" = 0x"); sw_ser.println(x, HEX); \
-//  }while(0)
+SoftwareSerial sw_ser(SW_UART_RX, SW_UART_TX);
+#define DEBUG(x) \
+ do{ \
+   sw_ser.print(#x" = "); sw_ser.println(x); \
+ }while(0)
+#define DEBUG_HEX(x) \
+ do{ \
+   sw_ser.print(#x" = 0x"); sw_ser.println(x, HEX); \
+ }while(0)
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -519,9 +516,9 @@ void setup() {
  
   servo.attach(M1_PWM); // pin 8 za servo
 
-  Serial.begin(DEFUALT_BAUDRATE);
+  Serial.begin(115200);
   
-  //ser.begin(115200);
+  sw_ser.begin(115200);
 
   pinMode(TOP_OF_PWM, OUTPUT);
   
@@ -575,9 +572,9 @@ void setup() {
   set_target_speed(0);
   set_target_steering_angle(90);
 
-  if (console_mode) {
-    Serial.println(F("\n[Arduino] Console mode ON. Kucaj H za help."));
-  }
+  // if (console_mode) {
+  //   Serial.println(F("\n[Arduino] Console mode ON. Kucaj H za help."));
+  // }
 
 
 /**
@@ -627,10 +624,10 @@ void setup() {
   
 
 
- //sw_ser.println("Arduino Motor Controller (1 BLDC + 1 Servo) - minimal");
+  sw_ser.println("Arduino Motor Controller (1 BLDC + 1 Servo) to ROS2");
   //DEBUG(DEFUALT_BAUDRATE);
- // DEBUG(sizeof(pkg_m2s_t));
- // DEBUG(sizeof(pkg_s2m_t));
+  DEBUG(sizeof(pkg_m2s_t));
+  DEBUG(sizeof(pkg_s2m_t));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -707,7 +704,7 @@ void print_status() {
   cnt++;
   if(cnt == 10){
    cnt = 0;
-//    sw_ser.println("  speed_i\t   enc\t steering");
+    sw_ser.println("  speed_i\t   enc\t steering");
   }
 
   const int L = 4*6 + 2*10 + 2;
@@ -717,11 +714,11 @@ void print_status() {
     L,
     "% 5d\t% 10ld\t% 5d\t",
     speed_i,
-    (long)enc,
+    (long)enc,//TODO Swap these two
     steering_angle_i
   );
   
-  //sw_ser.println(buf);
+  sw_ser.println(buf);
 }
 
 void print_status_if_changed() {
@@ -794,14 +791,14 @@ void send_pkg() {
 typedef unsigned long ms_t;
 
 void loop() {
-  if (console_mode) {
-    // Tekstualni režim za picocom
-    handle_console();
-    print_status_if_changed();  // opciono: tiho stanje bez spama
-    // ne zovi send_pkg() u konzolnom rezimu da ne izlazi binarni „šum”
-    delay(1);
-    return;
-  }
+  // if (console_mode) {
+  //   // Tekstualni režim za picocom
+  //   //handle_console();
+  //   print_status_if_changed();  // opciono: tiho stanje bez spama
+  //   // ne zovi send_pkg() u konzolnom rezimu da ne izlazi binarni „šum”
+  //   delay(1);
+  //   return;
+  // }
 
   
   poll_pkg();
@@ -824,61 +821,61 @@ void loop() {
       print_status();
     }
   }
-  handle_console();
+  //handle_console();
 
 }
 // ===== Console mode toggle =====
 
-void print_help() {
-  Serial.println(F("=== Console Mode ==="));
-  Serial.println(F("Komande:"));
-  Serial.println(F("  S<val>   -> Set speed, npr: S200 ili S-150"));
-  Serial.println(F("  A<deg>   -> Set servo angle [0..180], npr: A120"));
-  Serial.println(F("  P        -> Print status (enc, speed, angle)"));
-  Serial.println(F("  BIN      -> Predji u binarni rezim (ROS/packet)"));
-  Serial.println(F("  CON      -> Vrati se u konzolni rezim"));
-  Serial.println(F("  H        -> Help"));
-}
+// void print_help() {
+//   Serial.println(F("=== Console Mode ==="));
+//   Serial.println(F("Komande:"));
+//   Serial.println(F("  S<val>   -> Set speed, npr: S200 ili S-150"));
+//   Serial.println(F("  A<deg>   -> Set servo angle [0..180], npr: A120"));
+//   Serial.println(F("  P        -> Print status (enc, speed, angle)"));
+//   Serial.println(F("  BIN      -> Predji u binarni rezim (ROS/packet)"));
+//   Serial.println(F("  CON      -> Vrati se u konzolni rezim"));
+//   Serial.println(F("  H        -> Help"));
+// }
 
-void handle_console() {
-  if (!Serial.available()) return;
+// void handle_console() {
+//   if (!Serial.available()) return;
 
-  String cmd = Serial.readStringUntil('\n');
-  cmd.trim();
-  cmd.toUpperCase();
+//   String cmd = Serial.readStringUntil('\n');
+//   cmd.trim();
+//   cmd.toUpperCase();
 
-  if (cmd == "H" || cmd == "HELP") {
-    print_help();
-    return;
-  }
-  if (cmd == "CON") {
-    console_mode = true;
-    Serial.println(F("Console mode ON"));
-    return;
-  }
-  if (cmd == "BIN") {
-    console_mode = false;
-    Serial.println(F("Binary (packet) mode ON"));
-    return;
-  }
-  if (cmd == "P") {
-    Serial.print(F("enc=")); Serial.print((long)enc);
-    Serial.print(F(" speed_i=")); Serial.print((int)speed_i);
-    Serial.print(F(" angle=")); Serial.println((int)steering_angle_i);
-    return;
-  }
-  if (cmd.startsWith("S")) {
-    int val = cmd.substring(1).toInt();
-    set_target_speed(val);
-    Serial.print(F("Speed set to ")); Serial.println(val);
-    return;
-  }
-  if (cmd.startsWith("A")) {
-    int val = cmd.substring(1).toInt();
-    set_target_steering_angle(val);
-    Serial.print(F("Angle set to ")); Serial.println(val);
-    return;
-  }
+//   if (cmd == "H" || cmd == "HELP") {
+//     print_help();
+//     return;
+//   }
+//   if (cmd == "CON") {
+//     console_mode = true;
+//     Serial.println(F("Console mode ON"));
+//     return;
+//   }
+//   if (cmd == "BIN") {
+//     console_mode = false;
+//     Serial.println(F("Binary (packet) mode ON"));
+//     return;
+//   }
+//   if (cmd == "P") {
+//     Serial.print(F("enc=")); Serial.print((long)enc);
+//     Serial.print(F(" speed_i=")); Serial.print((int)speed_i);
+//     Serial.print(F(" angle=")); Serial.println((int)steering_angle_i);
+//     return;
+//   }
+//   if (cmd.startsWith("S")) {
+//     int val = cmd.substring(1).toInt();
+//     set_target_speed(val);
+//     Serial.print(F("Speed set to ")); Serial.println(val);
+//     return;
+//   }
+//   if (cmd.startsWith("A")) {
+//     int val = cmd.substring(1).toInt();
+//     set_target_steering_angle(val);
+//     Serial.print(F("Angle set to ")); Serial.println(val);
+//     return;
+//   }
 
-  Serial.println(F("Nepoznata komanda. Kucaj H za help."));
-}
+//   Serial.println(F("Nepoznata komanda. Kucaj H za help."));
+// }

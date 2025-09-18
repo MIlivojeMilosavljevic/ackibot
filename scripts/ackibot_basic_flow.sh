@@ -2,6 +2,7 @@
 
 #exit 0
 
+export ROS2_DOMAIN=45
 
 source /opt/ros/jazzy/setup.bash
 export RCUTILS_COLORIZED_OUTPUT=1

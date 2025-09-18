@@ -29,6 +29,9 @@
  */
 
 // On Windows, we have to be sure that SDL doesn't generate its own main.
+
+
+//Prvi: OVAJ FAJL pronađe i navede dostupne gamepad uređaje na sistemu
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
@@ -37,10 +40,10 @@
 
 int main()
 {
-  // SDL_INIT_GAMECONTROLLER implies SDL_INIT_JOYSTICK
-  if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC) < 0) {
-    fprintf(stderr, "SDL could not be initialized: %s\n", SDL_GetError());
-    return 1;
+  // SDL_INIT_GAMECONTROLLER sadrzi  SDL_INIT_JOYSTICK        SDL (SIMPLE DIRECTMEDIA LAYER-biblioteka koristena za rad sa slikom, zvukom, unosom sa tastature, joystika...) 
+  if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC) < 0) { //ovde inicijalizujemo SDL podsisteme za API za gejmkontrolere i podsistem za podrsku za vibracije (haptic)
+    fprintf(stderr, "SDL could not be initialized: %s\n", SDL_GetError()); 
+    return 1;                                                              
   }
 
   fprintf(
@@ -49,8 +52,11 @@ int main()
   fprintf(
     stdout,
     "-------------------------------------------------------------------------------\n");
+
+
+    //petlja prolazi kroz sve povezane joypad-e koje SDL moze da detektuje
   for (int i = 0; i < SDL_NumJoysticks(); ++i) {
-    SDL_JoystickGUID joystick_guid;
+    SDL_JoystickGUID joystick_guid; //tip podatka koji sadrzi jedinstveni id uredjaja
     const char * joystick_name = "Unknown";
     const char * has_mapping_string = "false";
     const char * is_gamepad = "false";

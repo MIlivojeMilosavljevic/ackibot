@@ -51,6 +51,10 @@ public:
   }
 };
 
+// Wraper metoda za get_parameter()
+// Pronalazi parametar ROS2 sistema pod nazivom "param_name"
+// U slucaju pronalska parametra, njegova vrijednost se cuva u output promjenljivoj
+// U slucaju da nije pronadjen parametar, baca izuzetak
 template<class T>
 void fetch_param(std::shared_ptr<rclcpp::Node> nh, const std::string & param_name, T & output)
 {

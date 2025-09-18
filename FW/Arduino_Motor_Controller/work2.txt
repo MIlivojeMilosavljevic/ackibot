@@ -1,0 +1,19 @@
+
+
+
+fork https://github.com/MilosSubotic/LPRS2_2025
+
+LPRS2_2025/ -> ackibot
+
+ackibot
+    ROS2/
+        ackibot_ws
+            src
+                ackibot_node/
+    HW/
+        Arduino
+            - dodati SW UART header
+    FW/
+        staro
+        ovo sto ste radili
+    

@@ -8,29 +8,39 @@
 
 
 #define MODULUS 2048
+
+
 typedef u16 pkg_magic_t;
 typedef u16 pkg_crc_t;
 
 #define struct_packed struct __attribute__((packed))
 
+// Paket od pc prema mikrokontroleru
 struct_packed pkg_m2s_t {
 	pkg_magic_t magic;
 	struct_packed {
 		i16 speed;
-        i16 steering_angle;
-		//u16 ramp_rate_ms;
+		i16 steering_angle;
+		//u16 ramp_rate_ms; // moze se obrisati, ne treba nam
 	} payload;
 	pkg_crc_t crc;
 };
 
+// povratni paket, od mikrokontrolera prema pc-u 
 struct_packed pkg_s2m_t {
 	pkg_magic_t magic;
 	struct_packed {
+		//i32 enc[2];
+		// treba nam jedan enkoder
 		i32 enc;
+		// i16 speed_i[2];
+		// i16 speed_o[2];
+		// kako je ovo povratni paket ne trebaju nam brzine, vec sa mikrokontrolera vracamo rezltat ultrazvucnih senzora
+		// to moze biti niz i16, KOLIKA VELICINA????
 		i16 speed_i;
 		i16 speed_o;
-        i16 steering_angle_i;
-        i16 steering_angle_o;
+		i16 steering_angle_i;
+		i16 steering_angle_o;
 		//u8 cfg;
 	} payload;
 	pkg_crc_t crc;

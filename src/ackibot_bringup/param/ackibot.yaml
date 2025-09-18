@@ -1,0 +1,19 @@
+fw_node:  # Parametri za čvor koji kontroliše motor i točkove robota (firmware node)
+  ros__parameters:
+
+    wheels:  # Podešavanja za točkove robota
+      separation: 0.43  # rastojanje između levog i desnog točka u metrima
+      radius: 0.073     # poluprečnik točka u metrima
+
+    motors:  # Podešavanja za motore
+      enc_tick_per_rev: 3415.92  # broj enkoderskih impulsa po jednoj revoluciji motora
+                                   # (ovo zavisi od motora i reduktora, ovde za motor 118RPM na ackibot1)
+
+diff_drive_controller:  # Parametri za diferencijalni kontroler kretanja robota
+  ros__parameters:
+
+    odometry:  # Podešavanja za odometriju
+      publish_tf: true          # da li objavljivati TF transformacije izmedju odom i base_footprint
+      use_imu: false            # da li koristiti IMU podatke za izračunavanje odometrije
+      frame_id: "odom"          # ime roditeljskog TF frame-a za odometriju
+      child_frame_id: "base_footprint"  # ime TF frame-a robota koji se pomera u odnosu na odom

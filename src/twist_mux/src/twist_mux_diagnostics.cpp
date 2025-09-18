@@ -52,11 +52,12 @@ TwistMuxDiagnostics::TwistMuxDiagnostics(TwistMux * mux)
 
 void TwistMuxDiagnostics::update()
 {
-  diagnostic_->force_update();
+  diagnostic_->force_update(); // Forsira trenutno ažuriranje dijagnostičkog statusa.
 }
 
 void TwistMuxDiagnostics::updateStatus(const status_type::ConstPtr & status)
 {
+  // Kopiramo sve podatke iz trenutnog statusa (liste izvora, lockova, prioriteti...)
   status_->velocity_hs = status->velocity_hs;
   status_->velocity_stamped_hs = status->velocity_stamped_hs;
   status_->lock_hs = status->lock_hs;
@@ -66,12 +67,18 @@ void TwistMuxDiagnostics::updateStatus(const status_type::ConstPtr & status)
   status_->reading_age = status->reading_age;
   status_->use_stamped = status->use_stamped;
 
-  update();
+  update(); // Nakon ažuriranja odmah forsiramo update dijagnostike
 }
 
+/**
+ * @brief Glavna funkcija koja se poziva od strane `diagnostic_updater`.
+ * Popunjava DiagnosticStatusWrapper sa informacijama o trenutnom stanju
+ * (aktivni izvori, lockovi, prioritet, starost poruka, loop time…).
+ */
 void TwistMuxDiagnostics::diagnostics(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   /// Check if the loop period is quick enough
+  // main_loop_time -> koliko traje glavna petlja twist_mux noda (koliko često se okida timer)
   if (status_->main_loop_time > MAIN_LOOP_TIME_MIN) {
     stat.summary(ERROR, "loop time too long");
   } else if (status_->reading_age > READING_AGE_MIN) {
@@ -80,6 +87,16 @@ void TwistMuxDiagnostics::diagnostics(diagnostic_updater::DiagnosticStatusWrappe
     stat.summary(OK, "ok");
   }
 
+  /**
+  * Detalji o svim lock-ovima (da li su “locked” ili “free”)
+  * Lock se smatra zaključanim (active) ako:
+  *    1) Poruka na tom lock topicu ima vrednost true
+  *    2) Ili mu je istekao timeout
+  * Lock je slobodan (inactive) ako:
+  *    1) Najnovija poruka ima data = false,
+  *    2) I nije istekao timeout.
+  * 
+  */
   if(status_->use_stamped)
   {
     for (auto & velocity_stamped_h : *status_->velocity_stamped_hs) {
@@ -109,10 +126,10 @@ void TwistMuxDiagnostics::diagnostics(diagnostic_updater::DiagnosticStatusWrappe
       static_cast<int>(lock_h.getPriority()));
   }
 
-  stat.add("current priority", static_cast<int>(status_->priority));
+  stat.add("current priority", static_cast<int>(status_->priority)); // Koji lock prioritet trenutno važi
 
-  stat.add("loop time in [sec]", status_->main_loop_time);
-  stat.add("data age in [sec]", status_->reading_age);
+  stat.add("loop time in [sec]", status_->main_loop_time); // Merenje petlje
+  stat.add("data age in [sec]", status_->reading_age); // Starost poslednje cmd poruke
 }
 
 }  // namespace twist_mux

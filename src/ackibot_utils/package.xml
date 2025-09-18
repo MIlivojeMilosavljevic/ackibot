@@ -1,0 +1,36 @@
+<?xml version="1.0"?>  <!-- Deklaracija XML verzije -->
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>  
+<!-- Povezivanje sa ROS schema fajlom koji validira format paketa (package_format3) -->
+
+<package format="3">  <!-- Definiše ROS2 paket koristeći format verzije 3 -->
+  
+  <name>ackibot_utils</name>  <!-- Ime paketa -->
+  <version>0.0.1</version>  <!-- Verzija paketa -->
+  
+  <description>
+    Utils SW  <!-- Kratak opis paketa: utility softver -->
+  </description>
+  
+  <maintainer email="max@birley.us">Max Birley</maintainer>  
+  <!-- Osoba koja održava paket i njen kontakt email -->
+  
+  <license>Apache 2.0</license>  <!-- Licenca paketa, u ovom slučaju Apache 2.0 -->
+  
+  <url type="website">myrobotkits.us</url>  
+  <!-- Zvanična web stranica paketa -->
+  
+  <url type="repository">https://github.com/Mdbirley/ackibot</url>  
+  <!-- Link ka repozitorijumu gde se nalazi izvorni kod paketa -->
+  
+  <author email="milos.subotic.sm@gmail.com">Milos Subotic</author>  
+  <!-- Autor paketa i njegov email kontakt -->
+  
+  <buildtool_depend>ament_cmake</buildtool_depend>  
+  <!-- Zavisnost od build alata ament_cmake koji je potreban da se paket izgradi -->
+  
+  <export>
+    <build_type>ament_cmake</build_type>  
+    <!-- Označava ROS2 build sistem koji koristi paket (ament_cmake) -->
+  </export>
+  
+</package>

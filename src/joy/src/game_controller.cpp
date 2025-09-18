@@ -28,6 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+//TRECI FAJL Prima te poruke i na osnovu njih donosi odluke (npr. kretanje robota, akcije u igri).
 #include <algorithm>
 #include <chrono>
 #include <functional>

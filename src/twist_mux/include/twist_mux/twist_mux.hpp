@@ -85,12 +85,12 @@ public:
   void updateDiagnostics();
 
 protected:
-  typedef TwistMuxDiagnostics diagnostics_type;
-  typedef TwistMuxDiagnosticsStatus status_type;
+  typedef TwistMuxDiagnostics diagnostics_type; // Tip koji rukuje ROS2 dijagnostikom za twist_mux
+  typedef TwistMuxDiagnosticsStatus status_type;  // Struktura u kojoj se čuva trenutno stanje (izvori, lockovi, prioriteti…)
 
-  rclcpp::TimerBase::SharedPtr diagnostics_timer_;
-
-  static constexpr std::chrono::duration<int64_t> DIAGNOSTICS_PERIOD = 1s;
+  rclcpp::TimerBase::SharedPtr diagnostics_timer_;  // Periodični ROS2 tajmer → pokreće updateDiagnostics() na svakih DIAGNOSTICS_PERIOD
+  
+  static constexpr std::chrono::duration<int64_t> DIAGNOSTICS_PERIOD = 1s;  // Konstanta → koliko često se pokreće dijagnostika (ovde svake 1 sekunde)
 
   /**
    * @brief velocity_hs_ Velocity topics' handles.
@@ -98,23 +98,65 @@ protected:
    * the fact that we have a subscriber inside with a pointer to 'this', we
    * must reserve the number of handles initially.
    */
+
+  /**
+   * @brief velocity_hs_ Lista handle-ova za sve izvore cmd_vel poruka (joystick, nav2, keyboard...)
+   * Svaki handle sadrži topic, timeout, prioritet i subscriber.
+   */
+  /**
+   * @brief velocity_stamped_hs_ Lista handle-ova za izvore tipa geometry_msgs::TwistStamped.
+   * Koristi se kada je parametar use_stamped = true.
+   */
+  /**
+   * @brief lock_hs_ Lista handle-ova za sve lock topike (emergency stop, loop closure...).
+   * Ako je neki lock aktivan → blokira određene izvore prema prioritetu.
+   */
   std::shared_ptr<velocity_topic_container> velocity_hs_;
   std::shared_ptr<velocity_stamped_topic_container> velocity_stamped_hs_;
   std::shared_ptr<lock_topic_container> lock_hs_;
 
+  /**
+   * @brief cmd_pub_ Publisher za izlazni topic /cmd_vel_out tipa Twist.
+   * Koristi se ako use_stamped = false.
+   */
+  /**
+   * @brief cmd_pub_stamped_ Publisher za izlazni topic /cmd_vel_out tipa TwistStamped.
+   * Koristi se ako use_stamped = true.
+   */
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_pub_;
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_pub_stamped_;
 
+  /**
+   * @brief last_cmd_ Pamti poslednju poslatu Twist poruku (bez timestamp-a).
+   * @brief last_cmd_stamped_ Pamti poslednju poslatu TwistStamped poruku (sa timestamp-om).
+   */
   geometry_msgs::msg::Twist last_cmd_;
   geometry_msgs::msg::TwistStamped last_cmd_stamped_;
+
 
   template<typename T>
   void getTopicHandles(const std::string & param_name, handle_container<T> & topic_hs);
 
   int getLockPriority();
 
+  /**
+   * @brief diagnostics_ Objekat koji obavlja integraciju sa ROS2 diagnostic_updater.
+   * Publikuje info o izvorima, lockovima, starosti podataka itd.
+   */
+  /**
+   * @brief status_ Struktura sa snapshot-om trenutnog stanja (koji je izvor aktivan, prioritet, lockovi…).
+   * Dijagnostika koristi ovaj status da bi prikazala health stanje sistema.
+   */
   std::shared_ptr<diagnostics_type> diagnostics_;
   std::shared_ptr<status_type> status_;
+
+  /*
+  * UKRATKO:
+  * velocity_hs_, velocity_stamped_hs_, lock_hs_ → ulazi i blokade.
+  * cmd_pub_, cmd_pub_stamped_ → izlazi (/cmd_vel_out).
+  * last_cmd_, last_cmd_stamped_ → pamćenje poslednje poruke.
+  * diagnostics_, status_, diagnostics_timer_ → periodično ažuriranje i objavljivanje zdravstvenog stanja.
+  */
 };
 
 }  // namespace twist_mux

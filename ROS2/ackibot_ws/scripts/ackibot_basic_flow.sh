@@ -11,6 +11,7 @@ export RCUTILS_COLORIZED_OUTPUT=1
 colcon build --symlink-install
 # Build specific package.
 #colcon build --symlink-install --packages-select ackibot_node
+#colcon build --symlink-install --packages-ignore twist_mux
 
 source install/setup.sh
 

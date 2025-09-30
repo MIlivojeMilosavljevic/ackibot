@@ -86,33 +86,33 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(en_teleop),  # uključi samo ako je en_teleop True
         ),
 
-        Node(
-            package="twist_stamper",  # paket twist_stamper
-            executable="twist_stamper",  # izvršni fajl
-            name='twist_stamper',  # ime nod-a
-            output='screen',  # ispis u terminal
-            remappings=[
-                ('cmd_vel_in', '/cmd_vel_nav_unstamped'),  # ulazni topic
-                ('cmd_vel_out', '/cmd_vel_nav_stamped'),  # izlazni topic
-            ],
-        ),
-
-        Node(
-            package="twist_mux",  # paket twist_mux
-            executable="twist_mux",  # izvršni fajl
-            name='twist_mux',  # ime nod-a
-            output='screen',  # ispis u terminal
-            parameters=[
-                os.path.join(
-                    get_package_share_directory('ackibot_bringup'),
-                    'config',
-                    'twist_mux_topics.yaml'  # YAML fajl sa topik i lock konfiguracijom
-                ),
-            ],
-            remappings=[
-                ('cmd_vel_out', '/cmd_vel_node'),  # izlaz remapovan na /cmd_vel_node
-            ],
-        ),
+        #Node(
+        #    package="twist_stamper",  # paket twist_stamper
+        #    executable="twist_stamper",  # izvršni fajl
+        #    name='twist_stamper',  # ime nod-a
+        #    output='screen',  # ispis u terminal
+        #    remappings=[
+        #        ('cmd_vel_in', '/cmd_vel_nav_unstamped'),  # ulazni topic
+        #        ('cmd_vel_out', '/cmd_vel_nav_stamped'),  # izlazni topic
+        #    ],
+        #),
+        #
+        #Node(
+        #    package="twist_mux",  # paket twist_mux
+        #    executable="twist_mux",  # izvršni fajl
+        #    name='twist_mux',  # ime nod-a
+        #    output='screen',  # ispis u terminal
+        #    parameters=[
+        #        os.path.join(
+        #            get_package_share_directory('ackibot_bringup'),
+        #            'config',
+        #            'twist_mux_topics.yaml'  # YAML fajl sa topik i lock konfiguracijom
+        #        ),
+        #    ],
+        #    remappings=[
+        #        ('cmd_vel_out', '/cmd_vel_node'),  # izlaz remapovan na /cmd_vel_node
+        #    ],
+        #),
 
         Node(
             package='ackibot_node',  # glavni čvor robota
@@ -121,7 +121,8 @@ def launch_setup(context, *args, **kwargs):
             arguments=['-i', arduino_port],  # prosleđujemo port Arduina
             output='screen',  # ispis u terminal
             remappings=[
-                ('cmd_vel', '/cmd_vel_node'),  # ulaz komandnog topika
+                #('cmd_vel', '/cmd_vel_node'),  # ulaz komandnog topika
+                ('cmd_vel', '/cmd_vel_joy_sbc'),  # ulaz komandnog topika
             ],
         ),
     ]

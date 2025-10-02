@@ -10,3 +10,5 @@ ros2 run teleop_twist_joy teleop_node --ros-args \
     -r joy:=/joy_sbc \
     -r cmd_vel:=/cmd_vel_joy_sbc \
 
+
+picocom -b 115200 /dev/ttyUSB1

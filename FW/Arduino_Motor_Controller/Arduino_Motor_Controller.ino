@@ -351,10 +351,10 @@ void set_bldc_from_speed(int16_t speed_val) {
   //pwm_signed odredjuje smer
   int pwm_signed = map_speed_to_pwm(speed_val); // -255 .. +255
   //odredjuje brzinu
-  int pwm = abs(pwm_signed);
-  if(pwm > 255) pwm = 255;
+  int pwm_abs = abs(pwm_signed);
+  if(pwm_abs > 255) pwm_abs = 255;
 
-  if(pwm == 0) {
+  if(pwm_abs == 0) {
     // stop motor
     digitalWrite(M0_DIR, LOW); // definicija: LOW = stop/direction prema tvom hardveru
     analogWrite(M0_PWM, 255);
@@ -368,7 +368,7 @@ void set_bldc_from_speed(int16_t speed_val) {
     digitalWrite(M0_DIR, LOW);
   }
 
-  analogWrite(M0_PWM, 255 - pwm); // 0-255
+  analogWrite(M0_PWM, 255 - pwm_abs); // 0-255
 }
 //
 //void set_servo() {

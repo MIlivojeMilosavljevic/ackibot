@@ -3,11 +3,11 @@
     axis_linear:
       x: 1
     scale_linear:
-      x: 0.7
+      x: 0.5
 
     axis_angular:
       yaw: 0
     scale_angular:
-      yaw: 0.2
+      yaw: 0.4
 
     require_enable_button: false

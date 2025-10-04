@@ -173,7 +173,7 @@ void FW_Node::cmd_vel__cb(const geometry_msgs::msg::TwistStamped::SharedPtr msg)
 	speed = static_cast<i16>(cmd.linear.x*2047);
 
 	// [1.0, -1.0] -> [left, right].
-	steering_angle = static_cast<i16>(((cmd.angular.z + 1.0)/2.0 * 180));  //mapira ugaonu brzinu na uglove od 0 do 180
+	steering_angle = static_cast<i16>(((-cmd.angular.z + 1.0)/2.0 * 180));  //mapira ugaonu brzinu na uglove od 0 do 180
 
 	speed = 
 		std::clamp(
